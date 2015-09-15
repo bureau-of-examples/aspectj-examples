@@ -5,7 +5,6 @@ import zhy2002.aspectjexamples.infrastructure.LoggingConfigurer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Date;
 import java.util.UUID;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
