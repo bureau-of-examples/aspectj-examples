@@ -104,5 +104,17 @@ public class ClassLoaderTest {
 
     }
 
+    @Test(expectedExceptions = VerifyError.class)
+    public void inOracleJVMDefineWillAlsoVerify() throws ClassNotFoundException{
+
+        String dir = "." + File.separator + "etc";
+        ClassLoader mockClassLoader = new AllowDuplicateClassLoader(dir);
+
+        Class<?> inheritFinalObject = mockClassLoader.loadClass("zhy2002.InheritFinalObject");
+
+        System.out.println(inheritFinalObject); //wont reach here.
+
+    }
+
     //see http://blog.csdn.net/xyang81/article/details/7292380#NetWorkClassLoader
 }
