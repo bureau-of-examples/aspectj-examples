@@ -2,6 +2,8 @@ package zhy2002.aspectjexamples.test;
 
 
 import org.testng.annotations.Test;
+import java.util.concurrent.CountDownLatch;
+
 
 import static org.testng.Assert.*;
 
@@ -114,4 +116,94 @@ public class ThreadTest {
         t1.interrupt();
         Thread.sleep(50);
     }
+
+
+    @Test
+    public void joinTest() throws InterruptedException{
+
+        final String[] flag = new String[1];
+
+        Thread t1 = new Thread(()->{
+            try {
+                Thread.sleep(100);
+                flag[0] = "done";
+            }catch (InterruptedException ex){
+                throw new RuntimeException(ex);
+            }
+
+        });
+
+        t1.start();
+        t1.join();
+        assertEquals("done", flag[0]);
+    }
+
+    private static class SynchronizedCounter {
+        private int count = 0;
+
+        public SynchronizedCounter (){
+            this(0);
+        }
+
+        public SynchronizedCounter (int count){
+            this.count = count;
+        }
+
+        public synchronized void increase(){
+            count++;
+        }
+
+        public synchronized void decrease(){
+            count--;
+        }
+
+        public synchronized int getCount(){
+            return count;
+        }
+    }
+
+    /**
+     * it is not possible for two invocations of synchronized methods on the same object to interleave.
+     * when a synchronized method exits, it automatically establishes a happens-before relationship with any subsequent invocation of a synchronized method for the same object. This guarantees that changes to the state of the object are visible to all threads.
+     * @throws InterruptedException
+     */
+    @Test
+    public void synchronizedCounterTest() throws InterruptedException{
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        final SynchronizedCounter  counter = new SynchronizedCounter ();
+        Thread t1 = new Thread(()->{
+            try {
+                countDownLatch.await();
+                for(int i=0; i<1000;i++){
+                    counter.increase();
+                }
+            }catch (InterruptedException ex){
+                throw new RuntimeException(ex);
+            }
+        });
+
+        Thread t2 = new Thread(()->{
+            try {
+
+                countDownLatch.await();
+                for(int i=0; i<1000;i++){
+                    counter.decrease();
+                }
+
+            }catch (InterruptedException ex){
+                throw new RuntimeException(ex);
+            }
+        });
+
+        t1.start();
+        t2.start();
+        countDownLatch.countDown();
+        t1.join();
+        t2.join();
+
+        assertEquals(counter.getCount(), 0);
+
+    }
+
+    //resume here: https://docs.oracle.com/javase/tutorial/essential/concurrency/locksync.html
 }
