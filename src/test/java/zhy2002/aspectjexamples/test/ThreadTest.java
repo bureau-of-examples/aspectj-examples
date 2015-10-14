@@ -3,22 +3,18 @@ package zhy2002.aspectjexamples.test;
 
 import org.testng.annotations.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Logger;
 
 
 import static org.testng.Assert.*;
 
 public class ThreadTest {
 
+    private static Logger logger = Logger.getLogger(ThreadTest.class.toString());
 
     private static class NewThread extends Thread {
 
@@ -351,5 +347,107 @@ public class ThreadTest {
 
     }
 
-    //resume here: https://docs.oracle.com/javase/tutorial/essential/concurrency/highlevel.html
+    private static class ParallelSortAction extends RecursiveAction{
+
+        private static final int FORK_THRESHOLD = 1024*1024/2;
+
+        private int[] target;
+        private int[] buffer;
+        private int start;
+        private int end; //inclusive
+
+        public ParallelSortAction(int[] target){
+            this.target = target;
+            this.buffer = new int[target.length];
+            start = 0;
+            end = target.length - 1;
+        }
+
+        private ParallelSortAction(int[] target, int[] buffer, int start, int end) {
+            this.target = target;
+            this.buffer = buffer;
+            this.start = start;
+            this.end = end;
+        }
+
+        @Override
+        protected void compute() {
+
+            int size = end - start + 1;
+            if(size > FORK_THRESHOLD && size - FORK_THRESHOLD >= FORK_THRESHOLD){
+                int mid = (start + end) >>> 1;
+                ParallelSortAction left = new ParallelSortAction(target, buffer, start, mid);
+                ParallelSortAction right = new ParallelSortAction(target, buffer, mid + 1, end);
+                right.fork();
+                left.compute();
+                right.join();
+                merge(mid);
+            } else {
+                Arrays.sort(target, start, end + 1);
+            }
+        }
+
+        private void merge(int mid) {
+
+            int start1 = start;
+            int end1 = mid;
+            int start2 = mid + 1;
+            int end2 = end;
+
+            for(int i=start; i<=end; i++){
+                if(start1 > end1){
+                    buffer[i] = target[start2++];
+                } else if(start2 > end2){
+                    buffer[i] = target[start1++];
+                } else {
+                    buffer[i] = target[start1] <= target[start2] ? target[start1++] : target[start2++];
+                }
+            }
+
+            //copy back
+            for(int i=start; i<=end; i++){
+                target[i] = buffer[i];
+            }
+        }
+    }
+
+    private static Random random = new Random(10);
+
+    public static int[] createRandomIntArray(int count){
+        int[] result = new int[count];
+        for(int i=0; i<count; i++){
+            result[i] = random.nextInt();
+        }
+        return result;
+    }
+
+    public static boolean isSorted(int[] array){
+        for(int i=1; i<array.length; i++){
+            if(array[i] < array[i - 1])
+                return false;
+        }
+        return true;
+    }
+
+    @Test
+    public void forkJoinMergeSortTest(){
+
+        int[] data = createRandomIntArray(1024*1024*5); //5m integers
+        assertFalse(isSorted(data));
+
+        int[] copy = Arrays.copyOf(data, data.length);
+        ForkJoinPool forkJoinPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
+        long time = System.currentTimeMillis();
+        forkJoinPool.invoke(new ParallelSortAction(data));
+        logger.info("Parallel time: " + String.valueOf((System.currentTimeMillis() - time) / 1000.0));
+        assertTrue(isSorted(data));
+
+        time = System.currentTimeMillis();
+        Arrays.sort(copy);
+        logger.info("Sequential time: " + String.valueOf((System.currentTimeMillis() - time) / 1000.0));
+        assertTrue(isSorted(copy));
+        logger.info("Done.");
+
+
+    }
 }

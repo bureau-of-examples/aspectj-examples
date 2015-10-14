@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.MatcherAssert.*;
@@ -55,6 +57,13 @@ public class StreamTest {
         members.stream().filter(oldMembers.or(isJoker)).forEach(selectedMembers::add);
 
         assertThat(selectedMembers, hasSize(3));
+    }
+
+    @Test
+    public void canPeakAndCollect(){
+        List<String> peek = new ArrayList<>();
+        List<String> result = Stream.of("A", "B", "C", "D").peek(peek::add).collect(Collectors.toList());
+        assertThat(result, equalTo(peek));
     }
 
     private List<Member> createSampleMembers(){
