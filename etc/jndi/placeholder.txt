@@ -1,0 +1,1 @@
+This is a placeholder file which ensures the simple jndi path exists.
