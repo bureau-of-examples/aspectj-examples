@@ -257,6 +257,84 @@ public class ThreadTest {
 
     }
 
+    @Test
+    public void cyclicBarrierTest() throws Exception {
+        CyclicBarrier barrier = new CyclicBarrier(3);
+        final List<String> sequence = Collections.synchronizedList(new ArrayList<>());
+
+        ExecutorService threadPool = Executors.newFixedThreadPool(3);
+        Future<?> future1 = threadPool.submit(()->{
+            try {
+                sequence.add("Thread 1 waiting");
+                barrier.await();
+                sequence.add("Thread 1 pass through");
+
+            }catch (InterruptedException | BrokenBarrierException ex){
+                throw new RuntimeException(ex);
+            }
+        });
+        Thread.sleep(50);
+
+        Future<?> future2 = threadPool.submit(()->{
+            try {
+                sequence.add("Thread 2 waiting");
+                barrier.await();
+                sequence.add("Thread 2 pass through");
+
+            }catch (InterruptedException | BrokenBarrierException ex){
+                throw new RuntimeException(ex);
+            }
+        });
+        Thread.sleep(50);
+
+        Future<?> future3 = threadPool.submit(()->{
+            try {
+                sequence.add("Thread 3 waiting");
+                barrier.await();
+                sequence.add("Thread 3 pass through");
+
+            }catch (InterruptedException | BrokenBarrierException ex){
+                throw new RuntimeException(ex);
+            }
+        });
+        Thread.sleep(50);
+
+        future1.get();
+        future2.get();
+        future3.get();
+
+        //the first two threads must have waited for the 3rd
+        for(int i=0; i<3; i++){
+            assertTrue(!sequence.get(i).contains("pass through"));
+        }
+
+        volatileFlag = false;
+        sequence.clear();
+        Future<?> future4 = threadPool.submit(() -> {
+            try {
+                sequence.add("Thread 4 waiting");
+                volatileFlag = true;
+                barrier.await();
+                sequence.add("Thread 4 pass through");
+
+            } catch (InterruptedException | BrokenBarrierException ex) {
+                System.out.println(ex);
+            }
+        });
+
+        while (!volatileFlag)
+            Thread.sleep(0);
+
+        assertEquals(barrier.getNumberWaiting(), 1);
+        assertEquals(sequence, Arrays.asList("Thread 4 waiting")); //should not progress
+        future4.cancel(true);
+
+    }
+
+
+
+    private volatile boolean volatileFlag;
+
 
     @Test
     public void readerWriterLockCannotWriteWhileReading() throws InterruptedException {
@@ -347,16 +425,16 @@ public class ThreadTest {
 
     }
 
-    private static class ParallelSortAction extends RecursiveAction{
+    private static class ParallelSortAction extends RecursiveAction {
 
-        private static final int FORK_THRESHOLD = 1024*1024/2;
+        private static final int FORK_THRESHOLD = 1024 * 1024 / 2;
 
         private int[] target;
         private int[] buffer;
         private int start;
         private int end; //inclusive
 
-        public ParallelSortAction(int[] target){
+        public ParallelSortAction(int[] target) {
             this.target = target;
             this.buffer = new int[target.length];
             start = 0;
@@ -374,7 +452,7 @@ public class ThreadTest {
         protected void compute() {
 
             int size = end - start + 1;
-            if(size > FORK_THRESHOLD && size - FORK_THRESHOLD >= FORK_THRESHOLD){
+            if (size > FORK_THRESHOLD && size - FORK_THRESHOLD >= FORK_THRESHOLD) {
                 int mid = (start + end) >>> 1;
                 ParallelSortAction left = new ParallelSortAction(target, buffer, start, mid);
                 ParallelSortAction right = new ParallelSortAction(target, buffer, mid + 1, end);
@@ -394,10 +472,10 @@ public class ThreadTest {
             int start2 = mid + 1;
             int end2 = end;
 
-            for(int i=start; i<=end; i++){
-                if(start1 > end1){
+            for (int i = start; i <= end; i++) {
+                if (start1 > end1) {
                     buffer[i] = target[start2++];
-                } else if(start2 > end2){
+                } else if (start2 > end2) {
                     buffer[i] = target[start1++];
                 } else {
                     buffer[i] = target[start1] <= target[start2] ? target[start1++] : target[start2++];
@@ -405,7 +483,7 @@ public class ThreadTest {
             }
 
             //copy back
-            for(int i=start; i<=end; i++){
+            for (int i = start; i <= end; i++) {
                 target[i] = buffer[i];
             }
         }
@@ -413,26 +491,26 @@ public class ThreadTest {
 
     private static Random random = new Random(10);
 
-    public static int[] createRandomIntArray(int count){
+    public static int[] createRandomIntArray(int count) {
         int[] result = new int[count];
-        for(int i=0; i<count; i++){
+        for (int i = 0; i < count; i++) {
             result[i] = random.nextInt();
         }
         return result;
     }
 
-    public static boolean isSorted(int[] array){
-        for(int i=1; i<array.length; i++){
-            if(array[i] < array[i - 1])
+    public static boolean isSorted(int[] array) {
+        for (int i = 1; i < array.length; i++) {
+            if (array[i] < array[i - 1])
                 return false;
         }
         return true;
     }
 
     @Test
-    public void forkJoinMergeSortTest(){
+    public void forkJoinMergeSortTest() {
 
-        int[] data = createRandomIntArray(1024*1024*5); //5m integers
+        int[] data = createRandomIntArray(1024 * 1024 * 5); //5m integers
         assertFalse(isSorted(data));
 
         int[] copy = Arrays.copyOf(data, data.length);
