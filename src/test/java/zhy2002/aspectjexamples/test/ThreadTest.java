@@ -8,6 +8,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 import static org.testng.Assert.*;
@@ -29,6 +31,15 @@ public class ThreadTest {
             tid = this.getId();
         }
 
+    }
+
+    @Test
+    public void parallelStreamTest(){
+
+        List<Integer> list = Stream.iterate(0, i-> i+1).limit(10).collect(Collectors.toList());
+
+        list.stream().unordered().parallel().forEach(System.out::println);
+        System.out.println();
     }
 
 
