@@ -61,7 +61,7 @@ public class GenericTest {
 
         assertThat(fieldType, instanceOf(ParameterizedType.class));
 
-        ParameterizedType parameterizedFieldType = (ParameterizedType)fieldType;
+        ParameterizedType parameterizedFieldType = (ParameterizedType) fieldType;
 
         assertThat(parameterizedFieldType.getActualTypeArguments().length, equalTo(1));
 
@@ -70,5 +70,11 @@ public class GenericTest {
         //examine the generic signature is also possible: myObject.getClass().getMethod("getMyListField").getGenericSignature()
         //I think the rule here is type information which is available at compile time could be preserved by the compiler as metadata.
     }
+
+
+}
+
+class TopLevelPackageLevelClass {
+
 
 }
