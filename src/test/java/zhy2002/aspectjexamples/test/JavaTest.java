@@ -53,6 +53,34 @@ public class JavaTest {
     }
 
 
+    @Test
+    public void fieldWithSameNameIsHidden(){
 
+        C2 c2 = new C2();
+
+        assertThat(c2.val, equalTo(20));
+
+        C1 c1 = c2;
+        assertThat(c1.val, equalTo(10));
+
+    }
+
+
+}
+
+class C1 {
+    int val = 10;
+
+    private int f1(){
+        return 0;
+    }
+}
+
+class C2 extends C1{
+    int val = 20;
+
+    protected String f1(){
+        return "a";
+    }
 }
 
