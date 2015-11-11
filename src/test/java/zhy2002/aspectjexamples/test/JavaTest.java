@@ -54,6 +54,13 @@ public class JavaTest {
 
 
     @Test
+    public void multipleBooleanTrueOrFalseInstancesPossible(){
+
+        boolean result = new Boolean(null) == Boolean.FALSE;
+        assertThat(result, equalTo(false));
+    }
+
+    @Test
     public void fieldWithSameNameIsHidden(){
 
         C2 c2 = new C2();
