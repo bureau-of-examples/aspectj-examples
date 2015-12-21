@@ -4,6 +4,8 @@ import org.junit.Test;
 
 import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.WeakHashMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -82,6 +84,23 @@ public class JavaTest {
         printFibo2(5);
     }
 
+    @Test
+    public void hashCodeTest(){
+
+        HashCodeTest hashCodeTest = new HashCodeTest("test1");
+        HashSet<HashCodeTest> hashSet = new HashSet<>();
+        hashSet.add(hashCodeTest);
+        HashCodeTest hashCodeTest2 = new HashCodeTest("test1");
+
+        assertThat(hashSet, contains(equalTo(hashCodeTest2)));
+
+        hashCodeTest.value = "test2";
+        assertThat(hashSet.contains(hashCodeTest2), equalTo(false)); //does not equal as value is changed
+
+        hashCodeTest2.value = hashCodeTest.value;
+        assertThat(hashSet.contains(hashCodeTest2), equalTo(false)); //cannot find hashCodeTest because it is in the wrong bucket
+    }
+
 
     public void printFibo(int count) {
         if (count <= 0) {
@@ -136,6 +155,30 @@ class C2 extends C1 {
 
     protected String f1() {
         return "a";
+    }
+}
+
+class HashCodeTest{
+    public String value;
+
+    public HashCodeTest(){}
+
+    public HashCodeTest(String value){
+        this.value = value;
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof HashCodeTest))
+            return false;
+
+        HashCodeTest hashCodeTest = (HashCodeTest) obj;
+        return Objects.equals(hashCodeTest.value, this.value);
     }
 }
 
