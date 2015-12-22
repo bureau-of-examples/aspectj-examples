@@ -101,6 +101,18 @@ public class JavaTest {
         assertThat(hashSet.contains(hashCodeTest2), equalTo(false)); //cannot find hashCodeTest because it is in the wrong bucket
     }
 
+    @Test
+    public void reflectionPolymorphism(){
+
+        Child child = new Child();
+        try {
+            Parent.class.getMethod("getValue").invoke(child);
+            assertThat(true, equalTo(false));
+        }catch (Throwable ex) {
+            assertThat(ex, instanceOf(IllegalArgumentException.class));
+        }
+    }
+
 
     public void printFibo(int count) {
         if (count <= 0) {
@@ -155,6 +167,18 @@ class C2 extends C1 {
 
     protected String f1() {
         return "a";
+    }
+}
+
+class Parent {
+    public String getValue(){
+        return "parent";
+    }
+}
+
+class Child {
+    public String getValue(){
+        return "child";
     }
 }
 
