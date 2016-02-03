@@ -1,12 +1,11 @@
 package zhy2002.aspectjexamples.test;
 
 import org.junit.Test;
+import zhy2002.aspectjexamples.serviceloader.MyTestService;
 
 import java.lang.management.ManagementFactory;
 import java.lang.ref.WeakReference;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.WeakHashMap;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -72,6 +71,18 @@ public class JavaTest {
         C1 c1 = c2;
         assertThat(c1.val, equalTo(10));
 
+    }
+
+    @Test
+    public void canGetServiceViaServiceLoader(){
+
+        ServiceLoader<MyTestService> myTestServiceLoader = ServiceLoader.load(MyTestService.class);
+        List<MyTestService> myTestServices = new ArrayList<>();
+        for(MyTestService myTestService : myTestServiceLoader) {
+            myTestServices.add(myTestService);
+        }
+
+        assertThat(myTestServices, hasSize(2));
     }
 
     @Test
