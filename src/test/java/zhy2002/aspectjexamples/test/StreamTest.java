@@ -3,9 +3,7 @@ package zhy2002.aspectjexamples.test;
 import org.junit.Test;
 import zhy2002.aspectjexamples.domain.Member;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -70,6 +68,17 @@ public class StreamTest {
         return Arrays.asList(new Member("j1", 21), new Member("j2", 22), new Member("joker", 22), new Member("j3", 23), new Member("queen", 23), new Member("queen", 24), new Member("j4", 24), new Member("j5", 25), new Member("j6", 26));
     }
 
+    @Test
+    public void removeFromMapValuesViewWillRemoveTheFirstEntryWithThisValue() {
+        Map<Integer, Integer> map = new HashMap<>();
+        map.put(1, 1);
+        map.put(2, 1);
+        map.values().remove(1);
+        assertThat(map.size(), equalTo(1));
+        assertThat(map.get(2), equalTo(1));
+    }
+
 
 
 }
+
