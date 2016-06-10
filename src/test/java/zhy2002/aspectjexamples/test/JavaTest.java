@@ -113,6 +113,45 @@ public class JavaTest {
     }
 
     @Test
+    public void boxingTest() {
+        Integer a = 3;
+        Integer b = 3;
+
+        assertThat(a == b, equalTo(true)); //small number is interned.
+
+        Integer c = 6;
+
+        Integer d = 1000;
+        Integer e = 2000;
+        Integer f = 3000;
+
+        assertThat(f == d + e, equalTo(true)); //c is auto un-boxed
+
+        assertThat(f == (Integer) (d + e), equalTo(false)); //d + e is boxed into a difference instance
+
+        assertThat(c == (Integer)(a + b), equalTo(true)); //small integers less than 128 is interned.
+        assertThat(c == (Integer)(return2() + return4()), equalTo(true)); //same as above
+
+        Long g = 6L;
+
+        assertThat(g == (a + b), equalTo(true)); //g is auto un-boxed and then the result of a+b is promoted to Long
+        assertThat(g.equals(a + b), equalTo(false)); //a + b auto boxed to an Integer
+
+        Integer h = 1000;
+
+        assertThat(h == d, equalTo(false)); //large number not interned
+
+    }
+
+    private int return2() {
+        return 2;
+    }
+
+    private int return4() {
+        return 4;
+    }
+
+    @Test
     public void reflectionPolymorphism(){
 
         Child child = new Child();
