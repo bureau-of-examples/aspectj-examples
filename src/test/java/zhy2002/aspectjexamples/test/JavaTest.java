@@ -152,6 +152,17 @@ public class JavaTest {
     }
 
     @Test
+    public void removeFromMapValuesViewWillRemoveTheFirstEntryWithThisValue() {
+        Map<Integer, Integer> map = new HashMap<>();
+        map.put(1, 1);
+        map.put(2, 1);
+        map.values().remove(1);
+        assertThat(map.size(), equalTo(1));
+        assertThat(map.get(2), equalTo(1));
+    }
+
+
+    @Test
     public void reflectionPolymorphism(){
 
         Child child = new Child();
