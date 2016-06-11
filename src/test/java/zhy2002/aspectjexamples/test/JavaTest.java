@@ -74,11 +74,11 @@ public class JavaTest {
     }
 
     @Test
-    public void canGetServiceViaServiceLoader(){
+    public void canGetServiceViaServiceLoader() {
 
         ServiceLoader<MyTestService> myTestServiceLoader = ServiceLoader.load(MyTestService.class);
         List<MyTestService> myTestServices = new ArrayList<>();
-        for(MyTestService myTestService : myTestServiceLoader) {
+        for (MyTestService myTestService : myTestServiceLoader) {
             myTestServices.add(myTestService);
         }
 
@@ -96,7 +96,7 @@ public class JavaTest {
     }
 
     @Test
-    public void hashCodeTest(){
+    public void hashCodeTest() {
 
         HashCodeTest hashCodeTest = new HashCodeTest("test1");
         HashSet<HashCodeTest> hashSet = new HashSet<>();
@@ -129,8 +129,8 @@ public class JavaTest {
 
         assertThat(f == (Integer) (d + e), equalTo(false)); //d + e is boxed into a difference instance
 
-        assertThat(c == (Integer)(a + b), equalTo(true)); //small integers less than 128 is interned.
-        assertThat(c == (Integer)(return2() + return4()), equalTo(true)); //same as above
+        assertThat(c == (Integer) (a + b), equalTo(true)); //small integers less than 128 is interned.
+        assertThat(c == (Integer) (return2() + return4()), equalTo(true)); //same as above
 
         Long g = 6L;
 
@@ -161,17 +161,54 @@ public class JavaTest {
         assertThat(map.get(2), equalTo(1));
     }
 
+    @Test
+    public void mapComputeTest() {
+        Map<String, String> map = new HashMap<>();
+        map.compute("key1", (key, val) -> "val1");
+        assertThat(map.get("key1"), equalTo("val1"));
+
+        map.compute("key1", (key, val) -> "val2");
+        assertThat(map.get("key1"), equalTo("val2"));
+    }
 
     @Test
-    public void reflectionPolymorphism(){
+    public void mapComputeIfAbsentTest() {
+        Map<String, String> map = new HashMap<>();
+        map.computeIfAbsent("key1", (key) -> "val1");
+        assertThat(map.get("key1"), equalTo("val1"));
+
+        map.computeIfAbsent("key1", (key) -> "val2");
+        assertThat(map.get("key1"), equalTo("val1"));
+    }
+
+    @Test
+    public void mapMergeTest() {
+        Map<String, String> map = new HashMap<>();
+
+        map.merge("key1", "val1", (old, newVal) -> old + newVal);
+        assertThat(map.get("key1"), equalTo("val1"));
+
+        map.merge("key1", "val2", (old, newVal) -> old + newVal);
+        assertThat(map.get("key1"), equalTo("val1val2"));
+    }
+
+    @Test
+    public void stringJoinerTest() {
+
+        StringJoiner joiner = new StringJoiner(",", "[", "]");
+        joiner.add("test1").add("test2");
+
+        assertThat(joiner.toString(), equalTo("[test1,test2]"));
+    }
+
+
+    @Test
+    public void reflectionPolymorphism() throws Exception {
 
         Child child = new Child();
-        try {
-            Parent.class.getMethod("getValue").invoke(child);
-            assertThat(true, equalTo(false));
-        }catch (Throwable ex) {
-            assertThat(ex, instanceOf(IllegalArgumentException.class));
-        }
+        String result = (String) Parent.class.getMethod("getValue").invoke(child);
+        assertThat(result, equalTo("child"));
+
     }
 
 
@@ -199,11 +236,11 @@ public class JavaTest {
         System.out.println();
     }
 
-    public void printFibo2(int count){
+    public void printFibo2(int count) {
         int previous = 0;
         int current = 1;
 
-        for(int i=0; i<count; i++){
+        for (int i = 0; i < count; i++) {
             System.out.println(current);
             int next = previous + current;
             previous = current;
@@ -232,23 +269,24 @@ class C2 extends C1 {
 }
 
 class Parent {
-    public String getValue(){
+    public String getValue() {
         return "parent";
     }
 }
 
-class Child {
-    public String getValue(){
+class Child extends Parent {
+    public String getValue() {
         return "child";
     }
 }
 
-class HashCodeTest{
+class HashCodeTest {
     public String value;
 
-    public HashCodeTest(){}
+    public HashCodeTest() {
+    }
 
-    public HashCodeTest(String value){
+    public HashCodeTest(String value) {
         this.value = value;
     }
 
@@ -259,7 +297,7 @@ class HashCodeTest{
 
     @Override
     public boolean equals(Object obj) {
-        if(!(obj instanceof HashCodeTest))
+        if (!(obj instanceof HashCodeTest))
             return false;
 
         HashCodeTest hashCodeTest = (HashCodeTest) obj;
